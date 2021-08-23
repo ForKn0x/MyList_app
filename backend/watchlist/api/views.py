@@ -1,7 +1,11 @@
 from watchlist.models import Watchlist, Platform, Review
-from rest_framework import generics, mixins
+from rest_framework import generics
 from .serializers import WatchlistSerializer, PlatformSerializer, ReviewsSerializer
 from watchlist.models import Watchlist, Platform
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+
+from .permissions import IsAdminOrReadOnly, IsReviewerOrReadOnly
 
 class WatchlistView(generics.ListCreateAPIView):
         queryset = Watchlist.objects.all()
@@ -21,9 +25,10 @@ class PlatformDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer_class = PlatformSerializer
         lookup_field = 'id'
 
-class ReviewView(generics.ListCreateAPIView):
+class ReviewView(generics.ListAPIView):
         #queryset = Review.objects.all()
         serializer_class = ReviewsSerializer
+        permission_classes = [IsAuthenticatedOrReadOnly]
 
         def get_queryset(self):
             pk = self.kwargs['id']
@@ -32,16 +37,27 @@ class ReviewView(generics.ListCreateAPIView):
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
         queryset = Review.objects.all()
         serializer_class = ReviewsSerializer
+        permission_classes = [IsReviewerOrReadOnly]
         lookup_field = 'id'
 
 class ReviewCreateView(generics.CreateAPIView):
     serializer_class = ReviewsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+            return Review.objects.all()
     
     def perform_create(self, serializer):
         pk = self.kwargs['id']
         item = Watchlist.objects.get(pk = pk)
 
-        serializer.save(watchlist = item)
+        review_user = self.request.user
+        review_queryset = Review.objects.filter(watchlist = item, review_user = review_user)
+
+        if review_queryset.exists():
+                raise ValidationError("Already have one review")
+
+        serializer.save(watchlist = item, review_user = review_user)
 
 
 ##################################### The portion below does the same thing as above using mixins ##################################
