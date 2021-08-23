@@ -19,6 +19,8 @@ class Watchlist(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     available = models.BooleanField(default=True)
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='watchlist_platform')
+    avgrating = models.FloatField(default=0.0)
+    num_rating = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title

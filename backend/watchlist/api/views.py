@@ -26,7 +26,6 @@ class PlatformDetailView(generics.RetrieveUpdateDestroyAPIView):
         lookup_field = 'id'
 
 class ReviewView(generics.ListAPIView):
-        #queryset = Review.objects.all()
         serializer_class = ReviewsSerializer
         permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -57,71 +56,15 @@ class ReviewCreateView(generics.CreateAPIView):
         if review_queryset.exists():
                 raise ValidationError("Already have one review")
 
+        if item.num_rating == 0:
+                item.avgrating = serializer.validated_data['review']
+        else:
+                item.avgrating = (item.avgrating + serializer.validated_data['review']) / 2
+
+        item.num_rating += 1
+        item.save()
+
         serializer.save(watchlist = item, review_user = review_user)
 
 
-##################################### The portion below does the same thing as above using mixins ##################################
 
-# class WatchlistView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.DestroyModelMixin, mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.RetrieveModelMixin):
-#     queryset = Watchlist.objects.all()
-#     serializer_class = WatchlistSerializer
-
-#     lookup_field = 'id'
-
-#     def get(self, request, id = None):
-#         if id:
-#             return self.retrieve(request)
-#         else:
-#             return self.list(request, id)
-
-#     def delete(self, request, id):
-#         return self.destroy(request, id)
-
-#     def post(self, request):
-#         return self.create(request)
-
-#     def put(self, request, id):
-#         return self.update(request, id)
-
-# class PlatformView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.DestroyModelMixin, mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.RetrieveModelMixin):
-#     queryset = Platform.objects.all()
-#     serializer_class = PlatformSerializer
-
-#     lookup_field = 'id'
-
-#     def get(self, request, id = None):
-#         if id:
-#             return self.retrieve(request)
-#         else:
-#             return self.list(request, id)
-
-#     def delete(self, request, id):
-#         return self.destroy(request, id)
-
-#     def post(self, request):
-#         return self.create(request)
-
-#     def put(self, request, id):
-#         return self.update(request, id)
-
-
-# class ReviewView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.DestroyModelMixin, mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.RetrieveModelMixin):
-#     queryset = Review.objects.all()
-#     serializer_class = ReviewsSerializer
-
-#     lookup_field = 'id'
-
-#     def get(self, request, id = None):
-#         if id:
-#             return self.retrieve(request)
-#         else:
-#             return self.list(request, id)
-
-#     def delete(self, request, id):
-#         return self.destroy(request, id)
-
-#     def post(self, request):
-#         return self.create(request)
-
-#     def put(self, request, id):
-#         return self.update(request, id)
