@@ -22,13 +22,26 @@ class PlatformDetailView(generics.RetrieveUpdateDestroyAPIView):
         lookup_field = 'id'
 
 class ReviewView(generics.ListCreateAPIView):
-        queryset = Review.objects.all()
+        #queryset = Review.objects.all()
         serializer_class = ReviewsSerializer
+
+        def get_queryset(self):
+            pk = self.kwargs['id']
+            return Review.objects.filter(watchlist = pk)
 
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
         queryset = Review.objects.all()
         serializer_class = ReviewsSerializer
         lookup_field = 'id'
+
+class ReviewCreateView(generics.CreateAPIView):
+    serializer_class = ReviewsSerializer
+    
+    def perform_create(self, serializer):
+        pk = self.kwargs['id']
+        item = Watchlist.objects.get(pk = pk)
+
+        serializer.save(watchlist = item)
 
 
 ##################################### The portion below does the same thing as above using mixins ##################################

@@ -4,7 +4,8 @@ from rest_framework import serializers
 class ReviewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields ='__all__'
+        # fields ='__all__'
+        exclude = ('watchlist', )
 
 class WatchlistSerializer(serializers.ModelSerializer):
     watchlist_reviews = ReviewsSerializer(many = True, read_only = True)
